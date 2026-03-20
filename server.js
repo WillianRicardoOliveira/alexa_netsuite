@@ -30,10 +30,12 @@ const token = {
     secret: '8e9cc63d5334c635af23642aa95c353f98c0ae14084098df92bfdc0c40e9ae40',
 };
 
-function getHeaders(url) {
+// 🔥 CORREÇÃO AQUI: inclui o body na assinatura
+function getHeaders(url, body) {
     const request_data = {
         url,
         method: 'POST',
+        data: body
     };
 
     const oauthData = oauth.authorize(request_data, token);
@@ -50,29 +52,23 @@ function getHeaders(url) {
 // ==========================
 async function buscarDadosNetSuite() {
 
-    const request_data = {
-        url: NETSUITE_URL,
-        method: 'POST',
+    const body = {
+        consulta: "api_custo_desembarcado",
+        filtros: {
+            memorando: "ALT 2025-159 BP 2%",
+            id: 0
+        },
+        limit: 500
     };
 
-    const headers = getHeaders(NETSUITE_URL);
+    const headers = getHeaders(NETSUITE_URL, body);
 
     try {
         const response = await axios.post(
             NETSUITE_URL,
+            body,
             {
-                consulta: "api_custo_desembarcado",
-                filtros: {
-                    memorando: "ALT 2025-159 BP 2%",
-                    id: 0
-                },
-                limit: 500
-            },
-            {
-                headers: {
-                    ...headers,
-                    'Content-Type': 'application/json'
-                }
+                headers
             }
         );
 
