@@ -1,9 +1,80 @@
 const express = require('express');
+const axios = require('axios');
+const OAuth = require('oauth-1.0a');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
 
-app.post('/alexa', (req, res) => {
+// ==========================
+// 🔹 CONFIG NETSUITE
+// ==========================
+const NETSUITE_URL = 'https://6932886.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=2346&deploy=1';
+
+const oauth = OAuth({
+    consumer: {
+        key: 'SEU_CONSUMER_KEY',
+        secret: 'SEU_CONSUMER_SECRET',
+    },
+    signature_method: 'HMAC-SHA256',
+    hash_function(base_string, key) {
+        return crypto
+            .createHmac('sha256', key)
+            .update(base_string)
+            .digest('base64');
+    },
+});
+
+const token = {
+    key: 'SEU_TOKEN_ID',
+    secret: 'SEU_TOKEN_SECRET',
+};
+
+// ==========================
+// 🔹 SERVICE NETSUITE
+// ==========================
+async function buscarDadosNetSuite() {
+
+    const request_data = {
+        url: NETSUITE_URL,
+        method: 'POST',
+    };
+
+    const headers = oauth.toHeader(oauth.authorize(request_data, token));
+
+    try {
+        const response = await axios.post(
+            NETSUITE_URL,
+            {
+                consulta: "api_custo_desembarcado",
+                filtros: {
+                    memorando: "ALT 2025-159 BP 2%",
+                    id: 0
+                },
+                limit: 500
+            },
+            {
+                headers: {
+                    ...headers,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        console.log('Resposta NetSuite:', JSON.stringify(response.data, null, 2));
+
+        return response.data;
+
+    } catch (error) {
+        console.error('Erro NetSuite:', error.response?.data || error.message);
+        return null;
+    }
+}
+
+// ==========================
+// 🔹 ENDPOINT ALEXA
+// ==========================
+app.post('/alexa', async (req, res) => {
 
     console.log('Requisição recebida da Alexa');
     console.log(JSON.stringify(req.body, null, 2));
@@ -20,7 +91,15 @@ app.post('/alexa', (req, res) => {
         const intentName = req.body.request.intent.name;
 
         if (intentName === 'FaturamentoHojeIntent') {
-            speechText = "O faturamento de hoje é 1000 reais";
+
+            const dados = await buscarDadosNetSuite();
+
+            if (dados && dados.data && dados.data.length > 0) {
+                const fatura = dados.data[0].fatura;
+                speechText = `Encontrei a fatura ${fatura}`;
+            } else {
+                speechText = "Não encontrei dados no NetSuite";
+            }
         }
     }
 
@@ -36,6 +115,9 @@ app.post('/alexa', (req, res) => {
     });
 });
 
+// ==========================
+// 🔹 START SERVER
+// ==========================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
