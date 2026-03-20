@@ -9,7 +9,7 @@ app.use(express.json());
 // ==========================
 // 🔹 CONFIG NETSUITE
 // ==========================
-const NETSUITE_URL = 'https://6932886.app.netsuite.com/app/site/hosting/restlet.nl?script=2582&deploy=1';
+const NETSUITE_URL = 'https://6932886.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=2582&deploy=1';
 
 const oauth = OAuth({
     consumer: {
