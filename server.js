@@ -9,7 +9,7 @@ app.use(express.json());
 // ==========================
 // 🔹 CONFIG NETSUITE
 // ==========================
-const NETSUITE_URL = 'https://6932886.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=2346&deploy=1';
+const NETSUITE_URL = 'https://6932886.app.netsuite.com/app/site/hosting/restlet.nl?script=2582&deploy=1';
 
 const oauth = OAuth({
     consumer: {
@@ -30,6 +30,21 @@ const token = {
     secret: '8e9cc63d5334c635af23642aa95c353f98c0ae14084098df92bfdc0c40e9ae40',
 };
 
+function getHeaders(url) {
+    const request_data = {
+        url,
+        method: 'POST',
+    };
+
+    const oauthData = oauth.authorize(request_data, token);
+
+    return {
+        Authorization: oauth.toHeader(oauthData).Authorization
+            .replace('OAuth ', `OAuth realm="6932886", `),
+        'Content-Type': 'application/json'
+    };
+}
+
 // ==========================
 // 🔹 SERVICE NETSUITE
 // ==========================
@@ -40,12 +55,7 @@ async function buscarDadosNetSuite() {
         method: 'POST',
     };
 
-    const authHeader = oauth.toHeader(oauth.authorize(request_data, token));
-
-    const headers = {
-        ...authHeader,
-        realm: '6932886' // ⚠️ seu account id (sem underscore)
-    };
+    const headers = getHeaders(NETSUITE_URL);
 
     try {
         const response = await axios.post(
