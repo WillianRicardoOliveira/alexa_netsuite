@@ -76,7 +76,9 @@ app.post('/alexa', async (req, res) => {
                 const fatura = dados.data[0].fatura;
                 speechText = `Encontrei a fatura ${fatura}`;
             } else {
+                console.log(dados);
                 speechText = "Não encontrei dados no NetSuite";
+                
             }
         }
     }
