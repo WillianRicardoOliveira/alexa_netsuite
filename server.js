@@ -1,3 +1,8 @@
+const express = require('express');
+
+const app = express();
+app.use(express.json());
+
 app.post('/alexa', (req, res) => {
 
     console.log('Requisição recebida da Alexa');
@@ -15,7 +20,7 @@ app.post('/alexa', (req, res) => {
         const intentName = req.body.request.intent.name;
 
         if (intentName === 'FaturamentoHojeIntent') {
-            speechText = "O faturamento de hoje é 1000 reais"; // depois vamos integrar com NetSuite 🔥
+            speechText = "O faturamento de hoje é 1000 reais";
         }
     }
 
@@ -29,4 +34,10 @@ app.post('/alexa', (req, res) => {
             shouldEndSession: false
         }
     });
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
