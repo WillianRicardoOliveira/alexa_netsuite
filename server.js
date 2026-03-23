@@ -104,6 +104,13 @@ app.post('/alexa', async (req, res) => {
 
         const requestType = req.body?.request?.type;
 
+
+        // 🔥 TRATAR SESSION END
+        if (requestType === 'SessionEndedRequest') {
+            console.log('🔚 Sessão encerrada');
+            return res.status(200).send(); // ⚠️ SEM JSON
+        }
+
         let speechText = "Não entendi sua solicitação";
 
         if (requestType === 'LaunchRequest') {
